@@ -5,8 +5,8 @@ module Cache = {
 
   type t('key, 'value) = 'key => checkResult('key, 'value);
 
-  let make: unit => t('key, 'value) =
-    () => {
+  let make: (('key, 'key) => bool) => t('key, 'value) =
+    isSame => {
       let cell = ref(None);
       let set = (key, value) => {
         cell := Some((key, value));
@@ -16,7 +16,7 @@ module Cache = {
         switch (cell^) {
         | None => Miss(set)
         | Some((cachedKey, value)) =>
-          if (cachedKey === key) {
+          if (isSame(cachedKey, key)) {
             Hit(value);
           } else {
             Miss(set);
@@ -69,7 +69,7 @@ let rec create:
           }
         );
       } else {
-        let cache = Cache.make();
+        let cache = Cache.make((===));
         let r: input => output = (
           input => {
             let procInput = inputToProcInput(input);

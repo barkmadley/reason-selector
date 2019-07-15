@@ -1,3 +1,31 @@
+module Cache = {
+  type checkResult('key, 'value) =
+    | Hit('value)
+    | Miss(('key, 'value) => 'value);
+
+  type t('key, 'value) = 'key => checkResult('key, 'value);
+
+  let make: unit => t('key, 'value) =
+    () => {
+      let cell = ref(None);
+      let set = (key, value) => {
+        cell := Some((key, value));
+        value;
+      };
+      let check = key =>
+        switch (cell^) {
+        | None => Miss(set)
+        | Some((cachedKey, value)) =>
+          if (cachedKey === key) {
+            Hit(value);
+          } else {
+            Miss(set);
+          }
+        };
+      check;
+    };
+};
+
 type t(_, _, _) =
   // | Curry(
   //     t('input, 'mid2 => 'output2, ('mid1, 'mid2) => 'output2),
@@ -41,23 +69,13 @@ let rec create:
           }
         );
       } else {
-        let cache = ref(None);
-        let recalc = procInput => {
-          let result = processor(procInput);
-          cache := Some((procInput, result));
-          result;
-        };
+        let cache = Cache.make();
         let r: input => output = (
           input => {
             let procInput = inputToProcInput(input);
-            switch (cache^) {
-            | None => recalc(procInput)
-            | Some((cachedProcInput, cachedResult)) =>
-              if (procInput === cachedProcInput) {
-                cachedResult;
-              } else {
-                recalc(procInput);
-              }
+            switch (cache(procInput)) {
+            | Cache.Miss(set) => set(procInput, processor(procInput))
+            | Cache.Hit(output) => output
             };
           }
         );

@@ -2,6 +2,7 @@
   "name": "reason-selectors",
   "version": "0.1.0",
   "scripts": {
+    "test": "yarn run build && jest",
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w"
@@ -12,6 +13,10 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "bs-platform": "^5.0.6",
+    "@glennsl/bs-jest": "^0.4.8"
+  },
+  "peerDependencies": {
     "bs-platform": "^5.0.6"
   }
 }

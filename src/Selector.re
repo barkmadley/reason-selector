@@ -81,6 +81,25 @@ let rec create:
         );
         r;
       }
+    | Curry(Curry(_, _, _) as lhs, Memo(inputToProcInput2, _), _cached) =>
+      let next = create(lhs, processor);
+
+      let inputCache =
+        Cache.make(((cachedKey1, cachedKey2), (key1, key2)) =>
+          cachedKey1 === key1 && cachedKey2 === key2
+        );
+
+      let r: input => output = (
+        input => {
+          let cont = next(input);
+          let input2 = inputToProcInput2(input);
+          switch (inputCache((cont, input2))) {
+          | Cache.Hit(output) => output
+          | Cache.Miss(set) => set((cont, input2), cont(input2))
+          };
+        }
+      );
+      r;
     | Curry(Memo(inputToProcInput1, _), Memo(inputToProcInput2, _), cached) =>
       if (cached) {
         let inputCache =

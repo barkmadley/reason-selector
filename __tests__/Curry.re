@@ -56,6 +56,28 @@ describe("Curry", () => {
   });
 
   test(
+    "calling multi curried selector twice with the same input only executes callback once",
+    () => {
+      let selectorCalls = ref(0);
+      let callback = (a, b, c) => {
+        incr(selectorCalls);
+        a + b + c;
+      };
+      let selector =
+        create(
+          // curry(curry(select(id), select(id)), select(id)),
+          select(id) =>> select(id) =>> select(id),
+          callback,
+        );
+
+      let _ = selector(1);
+      let _ = selector(1);
+
+      expect(selectorCalls^) |> toBe(1);
+    },
+  );
+
+  test(
     "calling selector twice with different inputs executes callback twice", () => {
     let selectorCalls = ref(0);
     let callback = (a, b) => {

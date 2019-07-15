@@ -82,45 +82,15 @@ let rec create:
         r;
       }
     | Curry(lhs, rhs, _cached) =>
-      // if (!cached) {
+      let next = create(uncached(lhs), processor);
       let r: input => output = (
         input => {
-          let cont = create(uncached(lhs), processor, input);
+          let cont = next(input);
           let rhsout = create(uncached(rhs), cont, input);
           rhsout;
         }
       );
       r;
-    // } else {
-    //   let cache = ref(None);
-    //   let recalc = (lhsOutput, rhsOutput) => {
-    //     let result = processor(lhsOutput, rhsOutput);
-    //     cache := Some((lhsOutput, rhsOutput, result));
-    //     result;
-    //   };
-    //   let p: processor = {
-    //     (
-    //       (lhsOutput, rhsOutput) => {
-    //         switch (cache^) {
-    //         | None => recalc(lhsOutput, rhsOutput)
-    //         | Some((cachedLhsOutput, cachedRhsOutput, cachedResult)) =>
-    //           if (lhsOutput === cachedLhsOutput
-    //               && rhsOutput === cachedRhsOutput) {
-    //             cachedResult;
-    //           } else {
-    //             recalc(lhsOutput, rhsOutput);
-    //           }
-    //         };
-    //       }
-    //     );
-    //   };
-    //   let r = input => {
-    //     let cont = create(uncached(lhs), p, input);
-    //     let rhsout = create(uncached(rhs), cont, input);
-    //     rhsout;
-    //   };
-    //   r;
-    // }
     };
   };
 

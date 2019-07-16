@@ -27,15 +27,6 @@ module Cache = {
 };
 
 type t(_, _, _) =
-  // | Curry(
-  //     t('input, 'mid2 => 'output2, ('mid1, 'mid2) => 'output2),
-  //     t('input, 'output2, 'mid2 => 'output2),
-  //     bool,
-  //   )
-  //   : t('input, 'output2, ('mid1, 'mid2) => 'output2)
-  // Original Curry pre-memoization
-  // We need to pull out the 'mid1/'mid2 parameter types in order to inject
-  // memoization into the processor function
   | Curry(
       t('input, 'processor2, 'processor1),
       t('input, 'output2, 'processor2),

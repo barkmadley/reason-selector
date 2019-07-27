@@ -91,6 +91,10 @@ See usage examples in [`the tests`](https://github.com/barkmadley/reason-selecto
 
 ## Changes
 
+### 0.2.0
+
+- Enforce the reverse Cons structure by using another type parameter and phantom types
+
 ### 0.1.0
 
 - Initial release

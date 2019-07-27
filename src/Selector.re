@@ -33,14 +33,15 @@ type t(_, _, _) =
       bool,
     )
     : t('input, 'output2, 'processor1)
-  | Memo('input => 'output1, bool): t('input, 'output, 'output1 => 'output);
+  | Select('input => 'output1, bool)
+    : t('input, 'output, 'output1 => 'output);
 
 let uncached:
   type input output proc. t(input, output, proc) => t(input, output, proc) =
   lhs => {
     switch (lhs) {
-    | Memo(fn, true) => Memo(fn, false)
-    | Memo(_, false) => lhs
+    | Select(fn, true) => Select(fn, false)
+    | Select(_, false) => lhs
     | Curry(lhs, rhs, true) => Curry(lhs, rhs, false)
     | Curry(_, _, false) => lhs
     };
@@ -51,7 +52,7 @@ let rec create:
     (t(input, output, processor), processor, input) => output =
   (selector, processor) => {
     switch (selector) {
-    | Memo(inputToProcInput, cache) =>
+    | Select(inputToProcInput, cache) =>
       if (!cache) {
         (
           input => {
@@ -72,7 +73,7 @@ let rec create:
         );
         r;
       }
-    | Curry(Curry(_, _, _) as lhs, Memo(inputToProcInput2, _), _cached) =>
+    | Curry(Curry(_, _, _) as lhs, Select(inputToProcInput2, _), _cached) =>
       let next = create(lhs, processor);
 
       let inputCache =
@@ -91,7 +92,11 @@ let rec create:
         }
       );
       r;
-    | Curry(Memo(inputToProcInput1, _), Memo(inputToProcInput2, _), cached) =>
+    | Curry(
+        Select(inputToProcInput1, _),
+        Select(inputToProcInput2, _),
+        cached,
+      ) =>
       if (cached) {
         let inputCache =
           Cache.make(((cachedKey1, cachedKey2), (key1, key2)) =>
@@ -136,5 +141,5 @@ let rec create:
 
 let (=>>) = (a, b) => Curry(a, b, true);
 
-let select = stateToValue => Memo(stateToValue, true);
+let select = stateToValue => Select(stateToValue, true);
 let curry = (=>>);

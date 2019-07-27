@@ -141,16 +141,6 @@ let rec create:
         );
         r;
       }
-    | Curry(lhs, rhs, _cached) =>
-      let next = create(uncached(lhs), processor);
-      let r: input => output = (
-        input => {
-          let cont = next(input);
-          let rhsout = create(uncached(rhs), cont, input);
-          rhsout;
-        }
-      );
-      r;
     };
   };
 

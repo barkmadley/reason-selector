@@ -26,18 +26,33 @@ module Cache = {
     };
 };
 
-type t(_, _, _) =
+/**
+  Use these phantom types to ensure that the Curry constructor is only applied
+  with a RHS of Select. This ensures that we have a reverse linked list
+  structure such as:
+    Curry(Curry(Select, Select), Select)
+  And we exclude structures like:
+    Curry(Curry(Select, Select), Curry(Select, Select))
+    and
+    Curry(Select, Curry(Select, Select))
+ */
+type curry;
+type select;
+
+type t(_, _, _, _) =
   | Curry(
-      t('input, 'processor2, 'processor1),
-      t('input, 'output2, 'processor2),
+      t('either, 'input, 'processor2, 'processor1),
+      t(select, 'input, 'output2, 'processor2),
       bool,
     )
-    : t('input, 'output2, 'processor1)
+    : t(curry, 'input, 'output2, 'processor1)
   | Select('input => 'output1, bool)
-    : t('input, 'output, 'output1 => 'output);
+    : t(select, 'input, 'output, 'output1 => 'output);
 
 let uncached:
-  type input output proc. t(input, output, proc) => t(input, output, proc) =
+  type constructor input output proc.
+    t(constructor, input, output, proc) =>
+    t(constructor, input, output, proc) =
   lhs => {
     switch (lhs) {
     | Select(fn, true) => Select(fn, false)
@@ -48,8 +63,8 @@ let uncached:
   };
 
 let rec create:
-  type input output processor.
-    (t(input, output, processor), processor, input) => output =
+  type constructor input output processor.
+    (t(constructor, input, output, processor), processor, input) => output =
   (selector, processor) => {
     switch (selector) {
     | Select(inputToProcInput, cache) =>
